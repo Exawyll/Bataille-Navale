@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1454399473 source:c:\users\stèphanie\documents\imie itstart\antoine_c\code_source_c\battleship4p_w_a\main.c
+	<stdio.h>
+	<stdlib.h>
+	<time.h>
+	<windows.h>
+
