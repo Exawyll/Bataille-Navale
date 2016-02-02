@@ -44,28 +44,77 @@ void set_parameters(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER]);
 //Défini la couleur des bateaux selon les joueurs
 void set_color_ships(int k);
 //Récupération des coordonnées de tir
-void time_to_shot(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs, int player);
+int set_longitude();
+int set_lattitude();
 //Défilement des joueurs
 void player_rolling(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs);
 //test Hits
-void test_hit(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs, int player, char longitude, int lattitude);
+int test_hit(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs, int player, char longitude, int lattitude);
 //Placement des tirs sur la carte
-void update_board(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs, int player, char longitude, int lattitude, int touch, int playerHit);
+void update_board(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs, int player, char longitude, int lattitude, int playerHit, int touch);
+//Test of victory
+int victory_test(int lifeTable[NB_PLAYER], int nb_joueurs);
+//Set the screen for victory
+void set_victory_screen(int lifeTable[NB_PLAYER], int nb_joueurs);
+//Init the life points for all the players
+void init_table_life(int lifeTable[NB_PLAYER], int nb_joueurs);
 
 int main(int argc, char *argv[])
 {
     char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER];
     set_parameters(board_game);
-    player_rolling(board_game, width, height, nb_joueurs);
+
     return 0;
 }
 
-void victory_test(int flag){
+void set_victory_screen(int lifeTable[NB_PLAYER], int nb_joueurs){
+    int i = 0;
+    int winner = 0;
+    char flag = 0;
+    for(i = 0; i < nb_joueurs; i++){
+        if(lifeTable[i] > 0){
+            winner = i + 1;
+        }
+    }
 
+    system("cls");
+
+    while(flag != '\r' && flag != '\n'){
+        fflush(stdin);
+        for(i = 0; i < 15; i++){
+            color(i, 0);
+        }
+        printf("#############################################################\n");
+        printf("#############################################################\n");
+        printf("#                                                           #\n");
+        printf("#                                                           #\n");
+        printf("#                          VICTORY                          #\n");
+        printf("#                   Player %d is the best !!!                #\n", winner);
+        printf("#                                                           #\n");
+        printf("#                                                           #\n");
+        printf("#############################################################\n");
+        printf("#############################################################\n");
+        flag = getchar();
+    }
 }
 
-int update_board(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs, int player, char longitude, int lattitude, int touch, int playerHit){
-    int flag = 1;
+int victory_test(int lifeTable[NB_PLAYER], int nb_joueurs){
+    int countingPlayers = 0;
+    int i = 0;
+    for(i = 0; i < nb_joueurs; i++){
+        if(lifeTable[i]  == 0){
+            countingPlayers++;
+        }
+    }
+    if(countingPlayers == (nb_joueurs - 1)){
+        return 0;
+    }
+    else{
+        return 1;
+    }
+}
+
+void update_board(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs, int player, char longitude, int lattitude, int playerHit, int touch){
     if(touch == 1){
         board_game[lattitude - 1][longitude - 65][player] = 15;   //Une étoile/mine en ASCII
         board_game[lattitude - 1][longitude - 65][playerHit] = 15;   //Une étoile/mine en ASCII
@@ -73,34 +122,33 @@ int update_board(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int 
     else{
         board_game[lattitude - 1][longitude - 65][player] = 88;   //Un X en ASCII
     }
-    return flag;
 }
 
-void test_hit(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs, int player, char longitude, int lattitude){
+int test_hit(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs, int player, char longitude, int lattitude){
     int k = 1;
-    int touch = 0;
     int playerHit = 0;
+    int touch = 0;
     for(k = 1; k <= nb_joueurs; k++){
         if(board_game[lattitude - 1][longitude - 65][k] != '~'){
             if(k == player){
                 printf("\nYou can't shoot your own ships ...\n");
-                time_to_shot(board_game, width, height, nb_joueurs, player);
+                break;
             }
             else{
-                touch = 1;
                 playerHit = k;
-                switch(board_game[lattitude - 1][longitude - 65][k]){
+                touch = 1;
+                switch(board_game[lattitude - 1][longitude - 65][playerHit]){
                     case 6:
-                        printf("\nxxx You hit a corvette of player %d xxx\n", k);
+                        printf("\nxxx You hit a corvette of player %d xxx\n", playerHit);
                         break;
                     case 5:
-                        printf("\nxxx You hit a destroyer of player %d xxx\n", k);
+                        printf("\nxxx You hit a destroyer of player %d xxx\n", playerHit);
                         break;
                     case 3:
-                        printf("\nxxx You hit a croiseur of player %d xxx\n", k);
+                        printf("\nxxx You hit a croiseur of player %d xxx\n", playerHit);
                         break;
                     case 4:
-                        printf("\nxxx You hit a porte-avion of player %d xxx\n", k);
+                        printf("\nxxx You hit a porte-avion of player %d xxx\n", playerHit);
                         break;
                     default:
                         break;
@@ -108,42 +156,71 @@ void test_hit(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int wid
             }
         }
         else{
-            printf("You missed, try again ...\n");
+            printf("\nYou missed, try again ...\n");
         }
     }
-    update_board(board_game, width, height, nb_joueurs, player, longitude, lattitude, touch, playerHit);
+    update_board(board_game, width, height, nb_joueurs, player, longitude, lattitude, playerHit, touch);
+    return playerHit;
+}
+
+void init_table_life(int lifeTable[NB_PLAYER], int nb_joueurs){
+    int i = 0;
+    for(i = 0; i < nb_joueurs; i++){
+        lifeTable[i] = LIFE_POINTS;
+    }
 }
 
 void player_rolling(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs){
     int player = 0;
     char next = ' ';
-    for(player = 1; player <= nb_joueurs; player++){
-        printf("C'est le tour du joueur %d\n", player);
-        print_board(board_game, width, height, nb_joueurs, player);
-        time_to_shot(board_game, width, height, nb_joueurs, player);
-
-
-        print_board(board_game, width, height, nb_joueurs, player);
-        while(next != '\r' && next != '\n'){
-            fflush(stdin);
-            printf("Press enter for next player ...\n");
-            next = getchar();
+    int longitude = 0;
+    int lattitude = 0;
+    int lifeTable[NB_PLAYER];
+    init_table_life(lifeTable, nb_joueurs);
+    int flag;
+    while(flag){
+        for(player = 1; player <= nb_joueurs; player++){
+            int hit = 0;
+            if(lifeTable[player - 1] > 0){
+                printf("Player %d have to play...\n", player);
+                print_board(board_game, width, height, nb_joueurs, player);
+                printf("Give the coordinates you want to shoot ?\n");
+                longitude = set_longitude();
+                lattitude = set_lattitude();
+                hit = test_hit(board_game, width, height, nb_joueurs, player, longitude, lattitude);
+                if(hit){
+                    (lifeTable[hit - 1])--;
+                }
+                print_board(board_game, width, height, nb_joueurs, player);
+            }
+            else{
+                printf("\nPlayer %d is dead !!!\n", player);
+            }
+            while(next != '\r' && next != '\n'){
+                fflush(stdin);
+                printf("Press enter for next player ...\n");
+                next = getchar();
+            }
         }
+        flag = victory_test(lifeTable, nb_joueurs);
     }
+    set_victory_screen(lifeTable, nb_joueurs);
 }
 
-void time_to_shot(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs, int player){
+int set_longitude(){
     char longitude = 0;
-    int lattitude = 0;
     fflush(stdin);
-    printf("Ou veux-tu tirer ?\n");
     printf("Longitude : ");
     scanf("%c", &longitude);
-    printf("Longitude saisie = %d", longitude);
+    return longitude;
+}
+
+int set_lattitude(){
+    int lattitude = 0;
     fflush(stdin);
-    printf("\nLattitude : ");
+    printf("Lattitude : ");
     scanf("%d", &lattitude);
-    test_hit(board_game, width, height, nb_joueurs, player, longitude, lattitude);
+    return lattitude;
 }
 
 void set_color_ships(int k){
@@ -182,6 +259,7 @@ void set_parameters(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER]){
     scanf("%d", &height);
     clean_board(board_game, width, height, nb_joueurs);
     set_all_ships(board_game, width, height, nb_joueurs);
+    player_rolling(board_game, width, height, nb_joueurs);
 }
 
 void color(int t,int f){
