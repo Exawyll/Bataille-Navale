@@ -7,6 +7,8 @@
 #define PLATEAU_HEIGHT 200
 #define PLATEAU_WIDTH 200
 
+#define LIFE_POINTS 21
+
 #define CORVETTE_ID 6  //pique
 #define CORVETTE_WIDTH 1
 #define CORVETTE_NB 1
@@ -54,16 +56,16 @@ int main(int argc, char *argv[])
 {
     char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER];
     set_parameters(board_game);
-
-    //print_board(board_game, width, height, nb_joueurs, whosPlaying);
+    player_rolling(board_game, width, height, nb_joueurs);
     return 0;
 }
 
-void victory_test(int hitCounter){
+void victory_test(int flag){
 
 }
 
-void update_board(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs, int player, char longitude, int lattitude, int touch, int playerHit){
+int update_board(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs, int player, char longitude, int lattitude, int touch, int playerHit){
+    int flag = 1;
     if(touch == 1){
         board_game[lattitude - 1][longitude - 65][player] = 15;   //Une étoile/mine en ASCII
         board_game[lattitude - 1][longitude - 65][playerHit] = 15;   //Une étoile/mine en ASCII
@@ -71,17 +73,17 @@ void update_board(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int
     else{
         board_game[lattitude - 1][longitude - 65][player] = 88;   //Un X en ASCII
     }
+    return flag;
 }
 
 void test_hit(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int width, int height, int nb_joueurs, int player, char longitude, int lattitude){
-    printf("Je suis bien en train de tester le Hit....\n");
     int k = 1;
     int touch = 0;
     int playerHit = 0;
     for(k = 1; k <= nb_joueurs; k++){
         if(board_game[lattitude - 1][longitude - 65][k] != '~'){
             if(k == player){
-                printf("You can't shoot your own ships ...\n");
+                printf("\nYou can't shoot your own ships ...\n");
                 time_to_shot(board_game, width, height, nb_joueurs, player);
             }
             else{
@@ -89,16 +91,16 @@ void test_hit(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int wid
                 playerHit = k;
                 switch(board_game[lattitude - 1][longitude - 65][k]){
                     case 6:
-                        printf("xxx You hit a corvette of player %d xxx\n", k);
+                        printf("\nxxx You hit a corvette of player %d xxx\n", k);
                         break;
                     case 5:
-                        printf("xxx You hit a destroyer of player %d xxx\n", k);
+                        printf("\nxxx You hit a destroyer of player %d xxx\n", k);
                         break;
                     case 3:
-                        printf("xxx You hit a croiseur of player %d xxx\n", k);
+                        printf("\nxxx You hit a croiseur of player %d xxx\n", k);
                         break;
                     case 4:
-                        printf("xxx You hit a porte-avion of player %d xxx \n", k);
+                        printf("\nxxx You hit a porte-avion of player %d xxx\n", k);
                         break;
                     default:
                         break;
@@ -119,6 +121,8 @@ void player_rolling(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], i
         printf("C'est le tour du joueur %d\n", player);
         print_board(board_game, width, height, nb_joueurs, player);
         time_to_shot(board_game, width, height, nb_joueurs, player);
+
+
         print_board(board_game, width, height, nb_joueurs, player);
         while(next != '\r' && next != '\n'){
             fflush(stdin);
@@ -178,7 +182,6 @@ void set_parameters(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER]){
     scanf("%d", &height);
     clean_board(board_game, width, height, nb_joueurs);
     set_all_ships(board_game, width, height, nb_joueurs);
-    player_rolling(board_game, width, height, nb_joueurs);
 }
 
 void color(int t,int f){
@@ -383,6 +386,9 @@ void print_board(char board_game[PLATEAU_HEIGHT][PLATEAU_WIDTH][NB_PLAYER], int 
             if(i == -2 && j >= 0){
                 color(0, 15);
                 printf("%c", (char)(j + 65));
+                if(j > 90){
+                    printf(" ");
+                }
             }
             else if(i == -2 && j < 0){
                 printf(" ");
